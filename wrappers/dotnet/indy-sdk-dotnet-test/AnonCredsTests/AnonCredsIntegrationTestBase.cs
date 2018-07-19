@@ -15,7 +15,7 @@ namespace Hyperledger.Indy.Test.AnonCredsTests
         protected static string issuerDid2 = "CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW";
         protected static string proverDid = "CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW";
         protected static string claimOfferTemplate = "{{\"issuer_did\":\"{0}\",\"schema_seq_no\":{1}}}";
-        protected static string schema = "{\"seqNo\":1,\"data\": {\"name\":\"gvt\",\"version\":\"1.0\",\"keys\":[\"age\",\"sex\",\"height\",\"name\"]}}";
+        protected static string schema = "{\"seqNo\":1,\"data\": {\"name\":\"gvt\",\"version\":\"1.0\",\"attr_names\":[\"age\",\"sex\",\"height\",\"name\"]}}";
         protected static string claimRequestTemplate =
             "{{\"blinded_ms\":" +
             "{{\"prover_did\":\"CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW\"," +
@@ -56,15 +56,15 @@ namespace Hyperledger.Indy.Test.AnonCredsTests
 
             claimDef = await AnonCreds.IssuerCreateAndStoreClaimDefAsync(commonWallet, issuerDid, schema, null, false);
 
-            await AnonCreds.ProverStoreClaimOfferAsync(commonWallet, string.Format(claimOfferTemplate, issuerDid, 1));
-            await AnonCreds.ProverStoreClaimOfferAsync(commonWallet, string.Format(claimOfferTemplate, issuerDid, 2));
-            await AnonCreds.ProverStoreClaimOfferAsync(commonWallet, string.Format(claimOfferTemplate, issuerDid2, 2));
+            await AnonCreds.ProverStoreCredentialOfferAsync(commonWallet, string.Format(claimOfferTemplate, issuerDid, 1));
+            await AnonCreds.ProverStoreCredentialOfferAsync(commonWallet, string.Format(claimOfferTemplate, issuerDid, 2));
+            await AnonCreds.ProverStoreCredentialOfferAsync(commonWallet, string.Format(claimOfferTemplate, issuerDid2, 2));
 
             await AnonCreds.ProverCreateMasterSecretAsync(commonWallet, masterSecretName);
 
             var claimOffer = string.Format("{{\"issuer_did\":\"{0}\",\"schema_seq_no\":{1}}}", issuerDid, 1);
 
-            var claimRequest = await AnonCreds.ProverCreateAndStoreClaimReqAsync(commonWallet, "CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW", claimOffer, claimDef, masterSecretName);
+            var claimRequest = await AnonCreds.ProverCreateCredentialReqAsync(commonWallet, "CnEDk9HrMnmiHXEV1WFgbVCRteYnPqsJwrTdcZaNhFVW", claimOffer, claimDef, masterSecretName);
 
             var claim = "{\"sex\":[\"male\",\"5944657099558967239210949258394887428692050081607692519917050011144233115103\"],\n" +
                     "                 \"name\":[\"Alex\",\"1139481716457488690172217916278103335\"],\n" +
@@ -72,10 +72,10 @@ namespace Hyperledger.Indy.Test.AnonCredsTests
                     "                 \"age\":[\"28\",\"28\"]\n" +
                     "        }";
 
-            var createClaimResult = await AnonCreds.IssuerCreateClaimAsync(commonWallet, claimRequest, claim, -1);
+            var createClaimResult = await AnonCreds.IssuerCreateCredentialAsync(commonWallet, claimRequest, claim, -1);
             var claimJson = createClaimResult.ClaimJson;
 
-            await AnonCreds.ProverStoreClaimAsync(commonWallet, claimJson);
+            await AnonCreds.ProverStoreClaimAsync(commonWallet, claimJson, createClaimResult.RevocRegUpdateJson);
 
             _walletOpened = true;
         }
